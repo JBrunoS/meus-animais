@@ -1,14 +1,14 @@
-import { animals } from '@/data/animals';
-import { Audio } from 'expo-av';
-import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useGameStore } from './store/gameStore';
+import { animals } from "@/data/animals";
+import { Audio } from "expo-av";
+import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useGameStore } from "./store/gameStore";
 
 export default function Game() {
   const TOTAL_PHASES = 10;
 
-  const [message, setMessage] = useState('Quem faz esse som?');
+  const [message, setMessage] = useState("Quem faz esse som?");
   const [sound, setSound] = useState(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [phase, setPhase] = useState(null);
@@ -21,10 +21,11 @@ export default function Game() {
   const phaseNumber = useGameStore((s) => s.phaseNumber);
   const nextPhase = useGameStore((s) => s.nextPhase);
   const addUnlocked = useGameStore((s) => s.addUnlocked);
-  const resetGame = useGameStore((s) => s.resetGame);
+  // const resetGame = useGameStore((s) => s.resetGame);
+  const resetProgress = useGameStore((s) => s.resetProgress);
 
   const [phaseSequence] = useState(() =>
-    [...animals].sort(() => Math.random() - 0.5)
+    [...animals].sort(() => Math.random() - 0.5),
   );
 
   function generatePhase(correctAnimal) {
@@ -35,9 +36,7 @@ export default function Game() {
 
     return {
       correct: correctAnimal,
-      options: [...shuffled, correctAnimal].sort(
-        () => Math.random() - 0.5
-      ),
+      options: [...shuffled, correctAnimal].sort(() => Math.random() - 0.5),
     };
   }
 
@@ -53,7 +52,7 @@ export default function Game() {
 
       await newSound.playAsync();
     } catch (error) {
-      console.log('Erro ao tocar som:', error);
+      console.log("Erro ao tocar som:", error);
     }
   }
 
@@ -64,7 +63,7 @@ export default function Game() {
     setIsCorrect(correct);
 
     if (correct) {
-      setMessage('🎉 Isso!');
+      setMessage("🎉 Isso!");
 
       // 🧠 salva no álbum
       addUnlocked(phase.correct.id);
@@ -73,7 +72,7 @@ export default function Game() {
         await sound.stopAsync();
       }
 
-      await playSound(require('../assets/images/success.mp3'));
+      await playSound(require("../assets/images/success.mp3"));
       setShowSuccess(true);
 
       setTimeout(() => {
@@ -84,19 +83,19 @@ export default function Game() {
         if (phaseNumber + 1 < TOTAL_PHASES) {
           nextPhase();
           setPhase(generatePhase(phaseSequence[phaseNumber + 1]));
-          setMessage('Quem faz esse som?');
+          setMessage("Quem faz esse som?");
         } else {
-          setMessage('🏆 Você completou!');
+          setMessage("🏆 Você completou!");
 
           setTimeout(() => {
-            resetGame();
-            router.push('/');
+            resetProgress();
+            router.push("/");
           }, 1200);
         }
       }, 1500);
     } else {
-      setMessage('🙂 Tente novamente!');
-      await playSound(require('../assets/images/error.mp3'));
+      setMessage("🙂 Tente novamente!");
+      await playSound(require("../assets/images/error.mp3"));
 
       setTimeout(() => {
         setSelected(null);
@@ -140,12 +139,12 @@ export default function Game() {
         {phase.options.map((a) => {
           const isSelected = selected === a.id;
 
-          let backgroundColor = '#FFF';
-          let borderColor = '#74b9ff';
+          let backgroundColor = "#FFF";
+          let borderColor = "#74b9ff";
 
           if (isSelected) {
-            backgroundColor = isCorrect ? '#00C853' : '#D63031';
-            borderColor = isCorrect ? '#00C853' : '#D63031';
+            backgroundColor = isCorrect ? "#00C853" : "#D63031";
+            borderColor = isCorrect ? "#00C853" : "#D63031";
           }
 
           return (
@@ -187,22 +186,22 @@ export default function Game() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#FFF",
+    justifyContent: "center",
+    alignItems: "center",
   },
 
   progressBar: {
-    width: '80%',
+    width: "80%",
     height: 10,
-    backgroundColor: '#DDD',
+    backgroundColor: "#DDD",
     borderRadius: 10,
-    overflow: 'hidden',
+    overflow: "hidden",
     marginTop: 60,
   },
   progressFill: {
-    height: '100%',
-    backgroundColor: '#6C5CE7',
+    height: "100%",
+    backgroundColor: "#6C5CE7",
   },
   progressText: {
     marginTop: 20,
@@ -215,25 +214,25 @@ const styles = StyleSheet.create({
   },
 
   soundButton: {
-    backgroundColor: '#00B894',
+    backgroundColor: "#00B894",
     padding: 30,
     borderRadius: 100,
     marginBottom: 30,
   },
   soundText: {
     fontSize: 40,
-    color: '#fff',
+    color: "#fff",
   },
 
   options: {
     marginTop: 30,
-    flexDirection: 'row',
-    width: '80%',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    width: "80%",
+    justifyContent: "space-between",
   },
   option: {
     padding: 15,
-    borderColor: '#74b9ff',
+    borderColor: "#74b9ff",
     borderWidth: 4,
     borderRadius: 20,
   },
@@ -242,14 +241,14 @@ const styles = StyleSheet.create({
   },
 
   successOverlay: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.2)',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.2)",
   },
   successText: {
     fontSize: 80,
