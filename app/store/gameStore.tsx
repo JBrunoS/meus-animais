@@ -2,7 +2,16 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
-export const useGameStore = create(
+type GameState = {
+  unlocked: string[];
+  phaseNumber: number;
+  addUnlocked: (id: string) => void;
+  nextPhase: () => void;
+  resetProgress: () => void;
+  resetAll: () => void;
+};
+
+export const useGameStore = create<GameState>()(
   persist(
     (set) => ({
       unlocked: [],
