@@ -1,46 +1,19 @@
+import { BackButton } from '@/components/back-button';
+import { BouncyButton } from '@/components/bouncy-button';
+import { Fonts, ScreenBackgrounds } from '@/constants/theme';
 import { animals } from '@/data/animals';
-import { Audio } from 'expo-av';
-import { useEffect, useRef } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useQuizSound } from '@/hooks/use-quiz-sound';
+import { Image, StyleSheet, Text, View } from 'react-native';
 import { useGameStore } from './store/gameStore';
 
 
 export default function Album() {
-    // 🧠 estado global
     const unlocked = useGameStore((s) => s.unlocked);
-    const soundRef = useRef(null);
-
-
-    // 🔊 tocar som do animal
-    async function playSound(soundFile) {
-        try {
-            // ⛔ para o anterior se existir
-            if (soundRef.current) {
-                await soundRef.current.stopAsync();
-                await soundRef.current.unloadAsync();
-                soundRef.current = null;
-            }
-
-            // 🔊 cria novo som
-            const { sound } = await Audio.Sound.createAsync(soundFile);
-            soundRef.current = sound;
-
-            await sound.playAsync();
-        } catch (e) {
-            console.log('Erro ao tocar som:', e);
-        }
-    }
-
-    useEffect(() => {
-        return () => {
-            if (soundRef.current) {
-                soundRef.current.unloadAsync();
-            }
-        };
-    }, []);
+    const { playPrompt } = useQuizSound();
 
     return (
         <View style={styles.container}>
+            <BackButton />
             <Text style={styles.title}>📘 Meu Álbum</Text>
 
             <Text style={styles.subtitle}>
@@ -52,20 +25,22 @@ export default function Album() {
                     const isUnlocked = unlocked.includes(a.id);
 
                     return (
-                        <TouchableOpacity
+                        <BouncyButton
                             key={a.id}
                             style={[
                                 styles.card,
                                 { opacity: isUnlocked ? 1 : 0.3 },
                             ]}
                             onPress={() => {
-                                if (isUnlocked) playSound(a.sound);
+                                if (isUnlocked && a.sound) playPrompt(a.sound);
                             }}
                         >
-                            <Text style={styles.emoji}>
-                                {isUnlocked ? a.emoji : '🔒'}
-                            </Text>
-                        </TouchableOpacity>
+                            {isUnlocked ? (
+                                <Image source={a.adultImage} style={styles.image} />
+                            ) : (
+                                <Text style={styles.lockEmoji}>🔒</Text>
+                            )}
+                        </BouncyButton>
                     );
                 })}
             </View>
@@ -78,12 +53,15 @@ const styles = StyleSheet.create({
         flex: 1,
         paddingTop: 60,
         alignItems: 'center',
-        backgroundColor: '#fff',
+        backgroundColor: ScreenBackgrounds.album,
     },
 
     title: {
         fontSize: 26,
         marginBottom: 10,
+        fontFamily: Fonts.rounded,
+        fontWeight: '600',
+        color: '#2D3436',
     },
 
     subtitle: {
@@ -104,12 +82,24 @@ const styles = StyleSheet.create({
         height: 80,
         margin: 10,
         backgroundColor: '#74B9FF',
-        borderRadius: 15,
+        borderRadius: 18,
         justifyContent: 'center',
         alignItems: 'center',
+        overflow: 'hidden',
+        shadowColor: '#000',
+        shadowOpacity: 0.12,
+        shadowRadius: 4,
+        shadowOffset: { width: 0, height: 2 },
+        elevation: 3,
     },
 
-    emoji: {
+    image: {
+        width: '100%',
+        height: '100%',
+        resizeMode: 'cover',
+    },
+
+    lockEmoji: {
         fontSize: 40,
     },
 });
