@@ -2,14 +2,14 @@ import { EmojiChoiceGame } from "@/components/emoji-choice-game";
 import { ScreenBackgrounds } from "@/constants/theme";
 import { useGameStore } from "./store/gameStore";
 
-export default function Pops() {
+export default function Habitat() {
   const resetProgress = useGameStore((s) => s.resetProgress);
 
   return (
     <EmojiChoiceGame
-      title="Quem é o filhote desse animal?"
-      getAnswer={(a) => a.babyImage}
-      background={ScreenBackgrounds.pops}
+      title="Onde esse animal mora?"
+      getAnswer={(a) => a.habitat}
+      background={ScreenBackgrounds.habitat}
       onFinish={resetProgress}
     />
   );

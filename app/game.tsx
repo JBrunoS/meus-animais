@@ -1,78 +1,60 @@
-import { animals } from "@/data/animals";
-import { Audio } from "expo-av";
+import { BackButton } from "@/components/back-button";
+import { BouncyButton } from "@/components/bouncy-button";
+import { ProgressBar } from "@/components/progress-bar";
+import { animals, type Animal } from "@/data/animals";
+import { Fonts, ScreenBackgrounds } from "@/constants/theme";
+import { useQuizSound } from "@/hooks/use-quiz-sound";
+import { shuffle } from "@/lib/shuffle";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Image, StyleSheet, Text, View } from "react-native";
 import { useGameStore } from "./store/gameStore";
+
+type SoundAnimal = Animal & { sound: number };
+type Phase = { correct: SoundAnimal; options: SoundAnimal[] };
+
+const soundAnimals = animals.filter((a): a is SoundAnimal => a.sound !== undefined);
 
 export default function Game() {
   const TOTAL_PHASES = 10;
 
   const [message, setMessage] = useState("Quem faz esse som?");
-  const [sound, setSound] = useState(null);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [phase, setPhase] = useState(null);
-  const [selected, setSelected] = useState(null);
-  const [isCorrect, setIsCorrect] = useState(null);
+  const [phase, setPhase] = useState<Phase | null>(null);
+  const [selected, setSelected] = useState<string | null>(null);
+  const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
 
   const router = useRouter();
+  const { playPrompt, playSuccess, playError } = useQuizSound();
 
-  // 🧠 STORE
   const phaseNumber = useGameStore((s) => s.phaseNumber);
   const nextPhase = useGameStore((s) => s.nextPhase);
   const addUnlocked = useGameStore((s) => s.addUnlocked);
-  // const resetGame = useGameStore((s) => s.resetGame);
   const resetProgress = useGameStore((s) => s.resetProgress);
 
-  const [phaseSequence] = useState(() =>
-    [...animals].sort(() => Math.random() - 0.5),
-  );
+  const [phaseSequence] = useState(() => shuffle(soundAnimals));
 
-  function generatePhase(correctAnimal) {
-    const shuffled = [...animals]
-      .filter((a) => a.id !== correctAnimal.id)
-      .sort(() => Math.random() - 0.5)
-      .slice(0, 2);
+  function generatePhase(correctAnimal: SoundAnimal): Phase {
+    const wrongOptions = shuffle(
+      soundAnimals.filter((a) => a.id !== correctAnimal.id),
+    ).slice(0, 2);
 
     return {
       correct: correctAnimal,
-      options: [...shuffled, correctAnimal].sort(() => Math.random() - 0.5),
+      options: shuffle([...wrongOptions, correctAnimal]),
     };
   }
 
-  async function playSound(file) {
-    try {
-      if (sound) {
-        await sound.stopAsync();
-        await sound.unloadAsync();
-      }
-
-      const { sound: newSound } = await Audio.Sound.createAsync(file);
-      setSound(newSound);
-
-      await newSound.playAsync();
-    } catch (error) {
-      console.log("Erro ao tocar som:", error);
-    }
-  }
-
-  async function handleAnswer(animalId) {
+  async function handleAnswer(animalId: string) {
     setSelected(animalId);
 
-    const correct = animalId === phase.correct.id;
+    const correct = animalId === phase!.correct.id;
     setIsCorrect(correct);
 
     if (correct) {
       setMessage("🎉 Isso!");
-
-      // 🧠 salva no álbum
-      addUnlocked(phase.correct.id);
-
-      if (sound) {
-        await sound.stopAsync();
-      }
-
-      await playSound(require("../assets/images/success.mp3"));
+      addUnlocked(phase!.correct.id);
+      await playSuccess();
       setShowSuccess(true);
 
       setTimeout(() => {
@@ -95,7 +77,7 @@ export default function Game() {
       }, 1500);
     } else {
       setMessage("🙂 Tente novamente!");
-      await playSound(require("../assets/images/error.mp3"));
+      await playError();
 
       setTimeout(() => {
         setSelected(null);
@@ -110,75 +92,57 @@ export default function Game() {
 
   useEffect(() => {
     if (phase) {
-      playSound(phase.correct.sound);
+      playPrompt(phase.correct.sound);
     }
   }, [phase]);
-
-  useEffect(() => {
-    return () => {
-      if (sound) {
-        sound.unloadAsync();
-      }
-    };
-  }, [sound]);
 
   if (!phase) return null;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: ScreenBackgrounds.game }]}>
+      <BackButton />
       <Text style={styles.title}>{message}</Text>
 
-      <TouchableOpacity
+      <BouncyButton
         style={styles.soundButton}
-        onPress={() => playSound(phase.correct.sound)}
+        onPress={() => playPrompt(phase.correct.sound)}
       >
         <Text style={styles.soundText}>🔊</Text>
-      </TouchableOpacity>
+      </BouncyButton>
 
       <View style={styles.options}>
         {phase.options.map((a) => {
           const isSelected = selected === a.id;
 
-          let backgroundColor = "#FFF";
           let borderColor = "#74b9ff";
-
           if (isSelected) {
-            backgroundColor = isCorrect ? "#00C853" : "#D63031";
             borderColor = isCorrect ? "#00C853" : "#D63031";
           }
 
           return (
-            <TouchableOpacity
+            <BouncyButton
               key={a.id}
-              style={[styles.option, { backgroundColor, borderColor }]}
+              style={[styles.option, { borderColor }]}
               onPress={() => handleAnswer(a.id)}
             >
-              <Text style={styles.optionText}>{a.emoji}</Text>
-            </TouchableOpacity>
+              <Image source={a.adultImage} style={styles.optionImage} />
+              {isSelected && (
+                <Text style={styles.mark}>{isCorrect ? "✓" : "✗"}</Text>
+              )}
+            </BouncyButton>
           );
         })}
       </View>
 
-      <View style={styles.progressBar}>
-        <View
-          style={[
-            styles.progressFill,
-            {
-              width: `${((phaseNumber + 1) / TOTAL_PHASES) * 100}%`,
-            },
-          ]}
-        />
-      </View>
-
-      <Text style={styles.progressText}>
-        Fase {phaseNumber + 1} / {TOTAL_PHASES}
-      </Text>
+      <ProgressBar current={phaseNumber} total={TOTAL_PHASES} />
 
       {showSuccess && (
         <View style={styles.successOverlay}>
           <Text style={styles.successText}>🎉</Text>
         </View>
       )}
+
+      <View style={styles.sand} />
     </View>
   );
 }
@@ -186,31 +150,16 @@ export default function Game() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFF",
     justifyContent: "center",
     alignItems: "center",
-  },
-
-  progressBar: {
-    width: "80%",
-    height: 10,
-    backgroundColor: "#DDD",
-    borderRadius: 10,
-    overflow: "hidden",
-    marginTop: 60,
-  },
-  progressFill: {
-    height: "100%",
-    backgroundColor: "#6C5CE7",
-  },
-  progressText: {
-    marginTop: 20,
-    fontSize: 16,
   },
 
   title: {
     fontSize: 24,
     marginBottom: 20,
+    fontFamily: Fonts.rounded,
+    fontWeight: "600",
+    color: "#2D3436",
   },
 
   soundButton: {
@@ -218,6 +167,11 @@ const styles = StyleSheet.create({
     padding: 30,
     borderRadius: 100,
     marginBottom: 30,
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 5,
   },
   soundText: {
     fontSize: 40,
@@ -231,13 +185,27 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   option: {
-    padding: 15,
+    padding: 6,
     borderColor: "#74b9ff",
     borderWidth: 4,
     borderRadius: 20,
+    alignItems: "center",
+    backgroundColor: "#FFF",
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
   },
-  optionText: {
-    fontSize: 60,
+  optionImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 14,
+    resizeMode: "cover",
+  },
+  mark: {
+    fontSize: 18,
+    fontWeight: "bold",
   },
 
   successOverlay: {
@@ -252,5 +220,16 @@ const styles = StyleSheet.create({
   },
   successText: {
     fontSize: 80,
+  },
+
+  sand: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 70,
+    backgroundColor: "#F5DEB3",
+    borderTopLeftRadius: 40,
+    borderTopRightRadius: 40,
   },
 });
