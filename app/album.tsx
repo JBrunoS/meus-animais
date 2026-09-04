@@ -3,8 +3,8 @@ import { BouncyButton } from '@/components/bouncy-button';
 import { Fonts, ScreenBackgrounds } from '@/constants/theme';
 import { animals } from '@/data/animals';
 import { useQuizSound } from '@/hooks/use-quiz-sound';
+import { useGameStore } from '@/store/gameStore';
 import { Image, StyleSheet, Text, View } from 'react-native';
-import { useGameStore } from './store/gameStore';
 
 
 export default function Album() {
@@ -13,6 +13,9 @@ export default function Album() {
 
     return (
         <View style={styles.container}>
+            <Text style={styles.sparkle1}>✨</Text>
+            <Text style={styles.sparkle2}>⭐</Text>
+
             <BackButton />
             <Text style={styles.title}>📘 Meu Álbum</Text>
 
@@ -58,6 +61,7 @@ const styles = StyleSheet.create({
 
     title: {
         fontSize: 26,
+        marginTop: 50,
         marginBottom: 10,
         fontFamily: Fonts.rounded,
         fontWeight: '600',
@@ -73,14 +77,14 @@ const styles = StyleSheet.create({
     grid: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        width: '85%',
+        width: '90%',
         justifyContent: 'center',
     },
 
     card: {
         width: 80,
         height: 80,
-        margin: 10,
+        margin: 8,
         backgroundColor: '#74B9FF',
         borderRadius: 18,
         justifyContent: 'center',
@@ -94,12 +98,15 @@ const styles = StyleSheet.create({
     },
 
     image: {
-        width: '100%',
-        height: '100%',
+        width: '90%',
+        height: '90%',
         resizeMode: 'cover',
     },
 
     lockEmoji: {
         fontSize: 40,
     },
+
+    sparkle1: { position: 'absolute', top: 64, left: 24, fontSize: 18 },
+    sparkle2: { position: 'absolute', top: 64, right: 24, fontSize: 16 },
 });

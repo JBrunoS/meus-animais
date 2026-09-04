@@ -8,7 +8,7 @@ export function BackButton() {
     <TouchableOpacity style={styles.button} onPress={() => router.push("/")}>
       <FontAwesome6 name='arrow-left' size={16} color="#FFFFFF" />
       {/* <FontAwesome6 name="house" size={16} color="#FFFFFF" /> */}
-      <Text style={styles.text}>  Voltar para Início</Text>
+      <Text style={styles.text}>  Voltar</Text>
     </TouchableOpacity>
   );
 }

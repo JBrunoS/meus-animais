@@ -8,26 +8,30 @@ import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 const MENU = [
-  { label: '🔊 Jogo de Sons', route: '/game' },
-  { label: '🍓 Alimentando os animais', route: '/food' },
-  { label: '🐣 Jogo dos filhotes', route: '/pops' },
-  { label: '🏠 Onde ele mora?', route: '/habitat' },
-  { label: '🧠 Jogo da Memória', route: '/memory' },
-  { label: '🌑 Adivinhe a Silhueta', route: '/silhouette' },
-  { label: '📘 Meu Álbum', route: '/album' },
+  { icon: '🔊', label: 'Sons dos Animais', route: '/game' },
+  { icon: '🍓', label: 'Hora da Comida', route: '/food' },
+  { icon: '🐣', label: 'Quem é o Filhote?', route: '/pops' },
+  { icon: '🏠', label: 'Onde ele Mora?', route: '/habitat' },
+  { icon: '🧠', label: 'Jogo da Memória', route: '/memory' },
+  { icon: '🔍', label: 'Adivinhe o Animal', route: '/silhouette' },
+  { icon: '📘', label: 'Meu Álbum', route: '/album' },
 ] as const;
 
 const FEATURED_POOL = animals.filter((a) => a.faceImage);
 
 export default function Home() {
   const router = useRouter();
-  const [featured] = useState(() => shuffle(FEATURED_POOL).slice(0, 3));
+  const [featured] = useState(() => shuffle(FEATURED_POOL).slice(0, 4));
 
   return (
     <View style={styles.container}>
-      <FloatingEmoji emoji="☀️" style={styles.sun} axis="y" distance={6} duration={2400} size={56} />
-      <FloatingEmoji emoji="☁️" style={styles.cloud1} axis="x" distance={16} duration={3800} size={38} />
-      <FloatingEmoji emoji="☁️" style={styles.cloud2} axis="x" distance={12} duration={3000} size={28} />
+      <FloatingEmoji emoji="☀️" style={styles.sun} axis="y" distance={6} duration={2400} size={70} />
+      <FloatingEmoji emoji="☁️" style={styles.cloud1} axis="x" distance={16} duration={3800} size={88} />
+      <FloatingEmoji emoji="☁️" style={styles.cloud2} axis="x" distance={12} duration={3000} size={98} />
+      <FloatingEmoji emoji="☁️" style={styles.cloud3} axis="x" distance={12} duration={3000} size={98} />
+      <FloatingEmoji emoji="☁️" style={styles.cloud4} axis="x" distance={12} duration={3000} size={98} />
+      <FloatingEmoji emoji="🕊️" style={styles.passaro1} axis="x" distance={200} duration={8000} size={38} />
+      <FloatingEmoji emoji="🕊️" style={styles.passaro2} flip axis="x" distance={250} duration={10000} size={38} />
 
       <Text style={styles.title}>Meus Animais</Text>
 
@@ -51,11 +55,12 @@ export default function Home() {
             style={[styles.button, { backgroundColor: FunColors[i % FunColors.length] }]}
             onPress={() => router.push(item.route)}
           >
+            <Text style={styles.buttonIcon}>{item.icon}</Text>
             <Text style={styles.buttonText}>{item.label}</Text>
           </BouncyButton>
         ))}
       </View>
-
+      <FloatingEmoji emoji='🏔️' axis='x' distance={1} duration={3000} size={160} style={styles.mountain1} />
       <View style={styles.grass} />
     </View>
   );
@@ -68,9 +73,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#BEE7FA',
   },
-  sun: { position: 'absolute', top: 50, right: 30 },
-  cloud1: { position: 'absolute', top: 90, left: 20 },
-  cloud2: { position: 'absolute', top: 140, right: 70 },
+  sun: { position: 'absolute', top: 100, right: 30 },
+  cloud1: { position: 'absolute', top: 190, left: 20 },
+  cloud2: { position: 'absolute', top: 280, right: 60 },
+  cloud3: { position: 'absolute', bottom: 180, right: 20 },
+  cloud4: { position: 'absolute', bottom: 260, left: 60 },
+  mountain1: { position: 'absolute', bottom: 20, right: 3, zIndex: 2 },
+  passaro1: { position: 'absolute', bottom: 100, left: 180, },
+  passaro2: { position: 'absolute', top: 280, left: 180 },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
@@ -80,13 +90,14 @@ const styles = StyleSheet.create({
   },
   critters: {
     flexDirection: 'row',
-    gap: 24,
-    marginBottom: 28,
+    gap: 4,
+    marginBottom: 90,
+    width: '90%'
   },
   critterImage: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     resizeMode: 'cover',
     borderWidth: 3,
     borderColor: '#fff',
@@ -97,23 +108,36 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 14,
     width: '90%',
+    zIndex: 4,
   },
   button: {
     padding: 16,
     borderRadius: 24,
     width: 190,
-    minHeight: 100,
+    height: 120,
     justifyContent: 'center',
     shadowColor: '#000',
     shadowOpacity: 0.15,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 3 },
     elevation: 4,
+    display: 'flex',
+    flexDirection: 'column',
   },
   buttonText: {
     color: '#fff',
-    fontSize: 20,
-    fontFamily: Fonts.rounded,
+    fontSize: 18,
+    // textShadowColor: '#003366',
+    textShadowColor: 'black', // Cor da borda
+    textShadowOffset: { width: 1, height: 0 }, // Posição
+    textShadowRadius: 3, // Mantém a borda nítida
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  buttonIcon: {
+    color: '#fff',
+    fontSize: 35,
+    // fontFamily: Fonts.rounded,
     fontWeight: '600',
     textAlign: 'center',
   },
