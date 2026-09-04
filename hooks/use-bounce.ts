@@ -1,8 +1,8 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 import { Animated, Easing } from "react-native";
 
 export function useBounce(axis: "x" | "y" = "y", distance = 12, duration = 1800) {
-  const anim = useRef(new Animated.Value(0)).current;
+  const [anim] = useState(() => new Animated.Value(0));
 
   useEffect(() => {
     const loop = Animated.loop(

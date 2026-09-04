@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useState } from "react";
 import { Animated, Pressable, type StyleProp, type ViewStyle } from "react-native";
 
 export function BouncyButton({
@@ -12,7 +12,7 @@ export function BouncyButton({
   children: React.ReactNode;
   disabled?: boolean;
 }) {
-  const scale = useRef(new Animated.Value(1)).current;
+  const [scale] = useState(() => new Animated.Value(1));
 
   function animateTo(value: number) {
     Animated.spring(scale, {
