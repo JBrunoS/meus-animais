@@ -1,5 +1,5 @@
-import { animals, type Animal } from "@/data/animals";
 import { Fonts } from "@/constants/theme";
+import { animals, type Animal } from "@/data/animals";
 import { useQuizSound } from "@/hooks/use-quiz-sound";
 import { shuffle } from "@/lib/shuffle";
 import { useRouter } from "expo-router";
@@ -14,11 +14,15 @@ export function AnimalGuessGame({
   renderClue,
   background,
   onFinish,
+  decoration,
+  textColor = "#2D3436",
 }: {
   title: string;
   renderClue: (animal: Animal) => ReactNode;
   background: string;
   onFinish?: () => void;
+  decoration?: ReactNode;
+  textColor?: string;
 }) {
   const [index, setIndex] = useState(0);
   const [message, setMessage] = useState("");
@@ -70,8 +74,9 @@ export function AnimalGuessGame({
 
   return (
     <View style={[styles.container, { backgroundColor: background }]}>
+      {decoration}
       <BackButton />
-      <Text style={styles.title}>{title}</Text>
+      <Text style={[styles.title, { color: textColor }]}>{title}</Text>
 
       {renderClue(current)}
 
@@ -98,7 +103,7 @@ export function AnimalGuessGame({
 
       <ProgressBar current={index} total={totalPhases} />
 
-      <Text style={styles.message}>{message}</Text>
+      <Text style={[styles.message, { color: textColor }]}>{message}</Text>
     </View>
   );
 }
@@ -120,7 +125,7 @@ const styles = StyleSheet.create({
   options: {
     marginTop: 30,
     flexDirection: "row",
-    width: "80%",
+    width: "90%",
     justifyContent: "space-between",
   },
   option: {
@@ -136,8 +141,8 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   optionImage: {
-    width: 80,
-    height: 80,
+    width: 100,
+    height: 100,
     borderRadius: 16,
     resizeMode: "cover",
   },

@@ -1,14 +1,15 @@
 import { BackButton } from "@/components/back-button";
 import { BouncyButton } from "@/components/bouncy-button";
+import { FloatingEmoji } from "@/components/floating-emoji";
 import { ProgressBar } from "@/components/progress-bar";
-import { animals, type Animal } from "@/data/animals";
 import { Fonts, ScreenBackgrounds } from "@/constants/theme";
+import { animals, type Animal } from "@/data/animals";
 import { useQuizSound } from "@/hooks/use-quiz-sound";
 import { shuffle } from "@/lib/shuffle";
+import { useGameStore } from "@/store/gameStore";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Image, StyleSheet, Text, View } from "react-native";
-import { useGameStore } from "./store/gameStore";
 
 type SoundAnimal = Animal & { sound: number };
 type Phase = { correct: SoundAnimal; options: SoundAnimal[] };
@@ -20,7 +21,6 @@ export default function Game() {
 
   const [message, setMessage] = useState("Quem faz esse som?");
   const [showSuccess, setShowSuccess] = useState(false);
-  const [phase, setPhase] = useState<Phase | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
 
@@ -45,15 +45,17 @@ export default function Game() {
     };
   }
 
+  const [phase, setPhase] = useState<Phase>(() => generatePhase(phaseSequence[0]));
+
   async function handleAnswer(animalId: string) {
     setSelected(animalId);
 
-    const correct = animalId === phase!.correct.id;
+    const correct = animalId === phase.correct.id;
     setIsCorrect(correct);
 
     if (correct) {
       setMessage("🎉 Isso!");
-      addUnlocked(phase!.correct.id);
+      addUnlocked(phase.correct.id);
       await playSuccess();
       setShowSuccess(true);
 
@@ -87,19 +89,27 @@ export default function Game() {
   }
 
   useEffect(() => {
-    setPhase(generatePhase(phaseSequence[0]));
-  }, []);
-
-  useEffect(() => {
-    if (phase) {
-      playPrompt(phase.correct.sound);
-    }
+    playPrompt(phase.correct.sound);
   }, [phase]);
-
-  if (!phase) return null;
 
   return (
     <View style={[styles.container, { backgroundColor: ScreenBackgrounds.game }]}>
+      <View style={styles.sea} />
+      <View style={styles.sand} />
+
+      <FloatingEmoji emoji="☀️" style={styles.sun} axis="y" distance={6} duration={2400} size={90} />
+      <FloatingEmoji emoji="☁️" style={styles.cloud1} axis="x" distance={14} duration={3600} size={120} />
+      <FloatingEmoji emoji="☁️" style={styles.cloud2} axis="x" distance={10} duration={3000} size={126} />
+      <FloatingEmoji emoji="🌴" style={styles.palm} axis="x" distance={0} duration={2800} size={64} />
+      <FloatingEmoji emoji="🌴" style={styles.palm2} flip axis="x" distance={0} duration={2800} size={64} />
+      <FloatingEmoji emoji="🌴" style={styles.palm3} flip axis="x" distance={0} duration={2800} size={64} />
+      <FloatingEmoji emoji="🌊" style={styles.wave1} axis="x" distance={8} duration={2800} size={34} />
+      <FloatingEmoji emoji="🌊" style={styles.wave2} axis="x" distance={8} duration={2800} size={34} />
+      <FloatingEmoji emoji="🌊" style={styles.wave3} axis="x" distance={8} duration={2800} size={34} />
+      <FloatingEmoji emoji="🌊" style={styles.wave4} axis="x" distance={8} duration={2800} size={34} />
+      <Text style={styles.shell1}>🐚</Text>
+      <Text style={styles.shell2}>⭐</Text>
+
       <BackButton />
       <Text style={styles.title}>{message}</Text>
 
@@ -141,8 +151,6 @@ export default function Game() {
           <Text style={styles.successText}>🎉</Text>
         </View>
       )}
-
-      <View style={styles.sand} />
     </View>
   );
 }
@@ -181,11 +189,11 @@ const styles = StyleSheet.create({
   options: {
     marginTop: 30,
     flexDirection: "row",
-    width: "80%",
+    width: "90%",
     justifyContent: "space-between",
   },
   option: {
-    padding: 6,
+    padding: 2,
     borderColor: "#74b9ff",
     borderWidth: 4,
     borderRadius: 20,
@@ -198,8 +206,8 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   optionImage: {
-    width: 80,
-    height: 80,
+    width: 110,
+    height: 110,
     borderRadius: 14,
     resizeMode: "cover",
   },
@@ -229,7 +237,28 @@ const styles = StyleSheet.create({
     right: 0,
     height: 70,
     backgroundColor: "#F5DEB3",
-    borderTopLeftRadius: 40,
-    borderTopRightRadius: 40,
   },
+
+  sea: {
+    position: "absolute",
+    bottom: 50,
+    left: 0,
+    right: 0,
+    height: 120,
+    backgroundColor: "#2faffa",
+    
+  },
+  wave1: { position: "absolute", bottom: 80, right: 160, zIndex:1 },
+  wave2: { position: "absolute", bottom: 140, right: 14, zIndex:1 },
+  wave3: { position: "absolute", bottom: 80, left: 0, zIndex:1  },
+  wave4: { position: "absolute", bottom: 120, left: 100, zIndex:1 },
+
+  sun: { position: "absolute", top: 50, right: 24 },
+  cloud1: { position: "absolute", top: 90, left: 16 },
+  cloud2: { position: "absolute", top: 130, right: 70 },
+  palm: { position: "absolute", bottom: 55, left: 4, zIndex: 2},
+  palm2: { position: "absolute", bottom: 55, left: 54, zIndex: 2},
+  palm3: { position: "absolute", bottom: 55, right: 4, zIndex: 2},
+  shell1: { position: "absolute", bottom: 18, right: 40, fontSize: 22, zIndex: 1 },
+  shell2: { position: "absolute", bottom: 26, right: 90, fontSize: 18, zIndex: 1 },
 });

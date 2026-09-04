@@ -1,9 +1,9 @@
+import { Fonts } from "@/constants/theme";
+import { animals, type Animal } from "@/data/animals";
 import { useQuizSound } from "@/hooks/use-quiz-sound";
 import { shuffle } from "@/lib/shuffle";
-import { animals, type Animal } from "@/data/animals";
-import { Fonts } from "@/constants/theme";
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Image, StyleSheet, Text, View } from "react-native";
 import { BackButton } from "./back-button";
 import { BouncyButton } from "./bouncy-button";
@@ -14,16 +14,19 @@ export function EmojiChoiceGame({
   getAnswer,
   background,
   onFinish,
+  decoration,
+  textColor = "#2D3436",
 }: {
   title: string;
   getAnswer: (animal: Animal) => number;
   background: string;
   onFinish?: () => void;
+  decoration?: ReactNode;
+  textColor?: string;
 }) {
   const [index, setIndex] = useState(0);
   const [message, setMessage] = useState("");
   const [selected, setSelected] = useState<number | null>(null);
-  const [options, setOptions] = useState<number[]>([]);
 
   const { playSuccess, playError } = useQuizSound();
   const router = useRouter();
@@ -32,14 +35,16 @@ export function EmojiChoiceGame({
   const current = phases[index];
   const totalPhases = phases.length;
 
-  useEffect(() => {
-    const correctAnswer = getAnswer(current);
+  function generateOptions(animal: Animal) {
+    const correctAnswer = getAnswer(animal);
     const wrongValues = [...new Set(animals.map(getAnswer))].filter(
       (v) => v !== correctAnswer,
     );
     const wrongAnswers = shuffle(wrongValues).slice(0, 2);
-    setOptions(shuffle([correctAnswer, ...wrongAnswers]));
-  }, [index]);
+    return shuffle([correctAnswer, ...wrongAnswers]);
+  }
+
+  const [options, setOptions] = useState<number[]>(() => generateOptions(current));
 
   async function handleAnswer(option: number) {
     setSelected(option);
@@ -52,7 +57,9 @@ export function EmojiChoiceGame({
         setSelected(null);
 
         if (index + 1 < phases.length) {
-          setIndex(index + 1);
+          const next = index + 1;
+          setIndex(next);
+          setOptions(generateOptions(phases[next]));
           setMessage("");
         } else {
           setMessage("🏆 Você terminou!");
@@ -71,9 +78,10 @@ export function EmojiChoiceGame({
 
   return (
     <View style={[styles.container, { backgroundColor: background }]}>
+      {decoration}
       <BackButton />
       <Image source={current.adultImage} style={styles.animalImage} />
-      <Text style={styles.title}>{title}</Text>
+      <Text style={[styles.title, { color: textColor }]}>{title}</Text>
 
       <View style={styles.options}>
         {options.map((opt) => {
@@ -100,7 +108,7 @@ export function EmojiChoiceGame({
 
       <ProgressBar current={index} total={totalPhases} />
 
-      <Text style={styles.message}>{message}</Text>
+      <Text style={[styles.message, { color: textColor }]}>{message}</Text>
     </View>
   );
 }
@@ -112,8 +120,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   animalImage: {
-    width: 150,
-    height: 150,
+    width: 350,
+    height: 300,
     borderRadius: 24,
     marginBottom: 20,
     resizeMode: "cover",
@@ -140,8 +148,8 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   optionImage: {
-    width: 80,
-    height: 80,
+    width: 100,
+    height: 100,
     borderRadius: 16,
     resizeMode: "cover",
   },
