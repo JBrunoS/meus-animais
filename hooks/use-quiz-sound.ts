@@ -1,4 +1,5 @@
-import { useAudioPlayer, type AudioSource } from "expo-audio";
+import { setIsAudioActiveAsync, useAudioPlayer, useAudioPlayerStatus, type AudioSource } from "expo-audio";
+import { useEffect } from "react";
 
 const SUCCESS_SOUND = require("../assets/songs/success.mp3");
 const ERROR_SOUND = require("../assets/songs/error.mp3");
@@ -10,6 +11,13 @@ export function useQuizSound() {
   const promptPlayer = useAudioPlayer(null);
   const successPlayer = useAudioPlayer(SUCCESS_SOUND);
   const errorPlayer = useAudioPlayer(ERROR_SOUND);
+  const promptStatus = useAudioPlayerStatus(promptPlayer);
+
+  // BackButton disables the audio subsystem on press; re-enable it whenever
+  // a screen that plays sound mounts.
+  useEffect(() => {
+    setIsAudioActiveAsync(true);
+  }, []);
 
   function playPrompt(file: AudioSource) {
     promptPlayer.pause();
@@ -29,5 +37,5 @@ export function useQuizSound() {
     errorPlayer.play();
   }
 
-  return { playPrompt, playSuccess, playError };
+  return { playPrompt, playSuccess, playError, isPromptPlaying: promptStatus.playing };
 }

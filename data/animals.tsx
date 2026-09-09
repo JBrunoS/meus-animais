@@ -5,7 +5,9 @@ export type Animal = {
   faceImage?: number;
   sound?: number;
   food: number;
+  foodLabel: string;
   habitat: number;
+  habitatLabel: string;
 };
 
 export const animals: Animal[] = [
@@ -16,7 +18,9 @@ export const animals: Animal[] = [
     faceImage: require("../assets/images/faces/dog.jpg"),
     sound: require("../assets/songs/dog.mp3"),
     food: require("../assets/images/food/osso.jpg"),
+    foodLabel: "Osso",
     habitat: require("../assets/images/habitat/casa.jpg"),
+    habitatLabel: "Casa",
   },
   {
     id: "cat",
@@ -25,7 +29,9 @@ export const animals: Animal[] = [
     faceImage: require("../assets/images/faces/cat.jpg"),
     sound: require("../assets/songs/cat.mp3"),
     food: require("../assets/images/food/leite.jpg"),
+    foodLabel: "Leite",
     habitat: require("../assets/images/habitat/casa.jpg"),
+    habitatLabel: "Casa",
   },
   {
     id: "cow",
@@ -33,7 +39,9 @@ export const animals: Animal[] = [
     babyImage: require("../assets/images/babys/baby cow.png"),
     sound: require("../assets/songs/cow.mp3"),
     food: require("../assets/images/food/palha.jpg"),
+    foodLabel: "Feno",
     habitat: require("../assets/images/habitat/fazenda.jpg"),
+    habitatLabel: "Fazenda",
   },
   {
     id: "lion",
@@ -42,7 +50,9 @@ export const animals: Animal[] = [
     faceImage: require("../assets/images/faces/lion.jpg"),
     sound: require("../assets/songs/lion.mp3"),
     food: require("../assets/images/food/carne.jpg"),
+    foodLabel: "Carne",
     habitat: require("../assets/images/habitat/selva.jpg"),
+    habitatLabel: "Selva",
   },
   {
     id: "frog",
@@ -51,7 +61,9 @@ export const animals: Animal[] = [
     faceImage: require("../assets/images/faces/frog.jpg"),
     sound: require("../assets/songs/frog.mp3"),
     food: require("../assets/images/food/inseto.jpg"),
+    foodLabel: "Inseto",
     habitat: require("../assets/images/habitat/lago.jpg"),
+    habitatLabel: "Lago",
   },
   {
     id: "horse",
@@ -59,7 +71,9 @@ export const animals: Animal[] = [
     babyImage: require("../assets/images/babys/baby horse.jpg"),
     sound: require("../assets/songs/horse.mp3"),
     food: require("../assets/images/food/cenoura.jpg"),
+    foodLabel: "Cenoura",
     habitat: require("../assets/images/habitat/fazenda.jpg"),
+    habitatLabel: "Fazenda",
   },
   {
     id: "rooster",
@@ -67,7 +81,9 @@ export const animals: Animal[] = [
     babyImage: require("../assets/images/babys/baby rooster.jpg"),
     sound: require("../assets/songs/rooster.mp3"),
     food: require("../assets/images/food/milho.jpg"),
+    foodLabel: "Milho",
     habitat: require("../assets/images/habitat/fazenda.jpg"),
+    habitatLabel: "Fazenda",
   },
   {
     id: "elephant",
@@ -76,7 +92,9 @@ export const animals: Animal[] = [
     faceImage: require("../assets/images/faces/elephant.jpg"),
     sound: require("../assets/songs/elephant.mp3"),
     food: require("../assets/images/food/folhas.jpg"),
+    foodLabel: "Folhas",
     habitat: require("../assets/images/habitat/selva.jpg"),
+    habitatLabel: "Selva",
   },
   {
     id: "bee",
@@ -84,7 +102,9 @@ export const animals: Animal[] = [
     babyImage: require("../assets/images/babys/baby bee.jpg"),
     sound: require("../assets/songs/bee.mp3"),
     food: require("../assets/images/food/flor.jpg"),
+    foodLabel: "Flor",
     habitat: require("../assets/images/habitat/jardim.jpg"),
+    habitatLabel: "Jardim",
   },
   {
     id: "pork",
@@ -92,7 +112,9 @@ export const animals: Animal[] = [
     babyImage: require("../assets/images/babys/baby pork.jpg"),
     sound: require("../assets/songs/pork.mp3"),
     food: require("../assets/images/food/maça.jpg"),
+    foodLabel: "Maçã",
     habitat: require("../assets/images/habitat/fazenda.jpg"),
+    habitatLabel: "Fazenda",
   },
   {
     id: "sheep",
@@ -100,7 +122,9 @@ export const animals: Animal[] = [
     babyImage: require("../assets/images/babys/baby sheep.jpg"),
     sound: require("../assets/songs/sheep.mp3"),
     food: require("../assets/images/food/grama verde.jpg"),
+    foodLabel: "Grama",
     habitat: require("../assets/images/habitat/fazenda.jpg"),
+    habitatLabel: "Fazenda",
   },
   {
     id: "duck",
@@ -108,7 +132,9 @@ export const animals: Animal[] = [
     babyImage: require("../assets/images/babys/baby duck.jpg"),
     sound: require("../assets/songs/duck.mp3"),
     food: require("../assets/images/food/pão.jpg"),
+    foodLabel: "Pão",
     habitat: require("../assets/images/habitat/lago.jpg"),
+    habitatLabel: "Lago",
   },
   {
     id: "owl",
@@ -116,7 +142,9 @@ export const animals: Animal[] = [
     babyImage: require("../assets/images/babys/baby owl.jpg"),
     sound: require("../assets/songs/coruja.mp3"),
     food: require("../assets/images/food/rato.jpg"),
+    foodLabel: "Rato",
     habitat: require("../assets/images/habitat/floresta.jpg"),
+    habitatLabel: "Floresta",
   },
   {
     id: "giraffe",
@@ -124,28 +152,36 @@ export const animals: Animal[] = [
     babyImage: require("../assets/images/babys/baby giraffe.jpg"),
     faceImage: require("../assets/images/faces/giraffe.jpg"),
     food: require("../assets/images/food/folhas 2.jpg"),
+    foodLabel: "Folhas",
     habitat: require("../assets/images/habitat/selva.jpg"),
+    habitatLabel: "Selva",
   },
   {
     id: "snake",
     adultImage: require("../assets/images/adults/snake.png"),
     babyImage: require("../assets/images/babys/baby snake.jpg"),
     food: require("../assets/images/food/ovo.jpg"),
+    foodLabel: "Ovo",
     habitat: require("../assets/images/habitat/floresta.jpg"),
+    habitatLabel: "Floresta",
   },
   {
     id: "turtle",
     adultImage: require("../assets/images/adults/turtle.png"),
     babyImage: require("../assets/images/babys/baby turtle.jpg"),
     food: require("../assets/images/food/alface.jpg"),
+    foodLabel: "Alface",
     habitat: require("../assets/images/habitat/lago.jpg"),
+    habitatLabel: "Lago",
   },
   {
     id: "kangaroo",
     adultImage: require("../assets/images/adults/kangaroo.png"),
     babyImage: require("../assets/images/babys/baby kangaroo.jpg"),
     food: require("../assets/images/food/folhas rasteiras.jpg"),
+    foodLabel: "Grama",
     habitat: require("../assets/images/habitat/deserto.jpg"),
+    habitatLabel: "Deserto",
   },
   {
     id: "penguin",
@@ -153,7 +189,9 @@ export const animals: Animal[] = [
     babyImage: require("../assets/images/babys/baby penguin.jpg"),
     faceImage: require("../assets/images/faces/pinguim.jpg"),
     food: require("../assets/images/food/peixe.jpg"),
+    foodLabel: "Peixe",
     habitat: require("../assets/images/habitat/gelo.jpg"),
+    habitatLabel: "Gelo",
   },
   {
     id: "donkey",
@@ -161,7 +199,9 @@ export const animals: Animal[] = [
     babyImage: require("../assets/images/babys/baby donkey.jpg"),
     sound: require("../assets/songs/donkey.wav"),
     food: require("../assets/images/food/palha jumento.jpg"),
+    foodLabel: "Feno",
     habitat: require("../assets/images/habitat/fazenda.jpg"),
+    habitatLabel: "Fazenda",
   },
   {
     id: "goat",
@@ -169,7 +209,9 @@ export const animals: Animal[] = [
     babyImage: require("../assets/images/babys/baby goat.jpg"),
     sound: require("../assets/songs/cabra.mp3"),
     food: require("../assets/images/food/grama verde.jpg"),
+    foodLabel: "Grama",
     habitat: require("../assets/images/habitat/fazenda.jpg"),
+    habitatLabel: "Fazenda",
   },
   {
     id: "pigeon",
@@ -177,6 +219,8 @@ export const animals: Animal[] = [
     babyImage: require("../assets/images/babys/baby pingeon.jpg"),
     sound: require("../assets/songs/pombo.mp3"),
     food: require("../assets/images/food/milho.jpg"),
+    foodLabel: "Milho",
     habitat: require("../assets/images/habitat/jardim.jpg"),
+    habitatLabel: "Jardim",
   },
 ];

@@ -13,6 +13,7 @@ export default function Pops() {
       getAnswer={(a) => a.babyImage}
       background={ScreenBackgrounds.pops}
       textColor="#FFF3D6"
+      backButtonColor="#FDCB6E"
       onFinish={resetProgress}
       decoration={
         <>

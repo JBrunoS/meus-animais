@@ -1,10 +1,10 @@
 import { BackButton } from "@/components/back-button";
 import { BouncyButton } from "@/components/bouncy-button";
+import { EndScreen } from "@/components/end-screen";
 import { Fonts, ScreenBackgrounds } from "@/constants/theme";
 import { animals } from "@/data/animals";
 import { useQuizSound } from "@/hooks/use-quiz-sound";
 import { shuffle } from "@/lib/shuffle";
-import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Image, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 
@@ -20,6 +20,7 @@ const PHASES = [
 ];
 
 const GRID_CARD_MARGIN = 8;
+type Mode = "easy" | "hard";
 
 // ponytail: picks the column count that matches the grid's aspect ratio to
 // the available width/height box (classic sqrt(N * W/H) grid formula),
@@ -58,37 +59,73 @@ function startPhase(phaseIndex: number): GameState {
   };
 }
 
+function ModeSelect({ onSelect }: { onSelect: (mode: Mode) => void }) {
+  return (
+    <View style={styles.container}>
+      <BackButton />
+      <Text style={styles.sparkle1}>✨</Text>
+      <Text style={styles.sparkle2}>⭐</Text>
+      <Text style={styles.title}>🧠 Jogo da Memória</Text>
+      <Text style={styles.subtitle}>Escolha o modo de jogo</Text>
+
+      <BouncyButton style={[styles.modeButton, styles.easyButton]} onPress={() => onSelect("easy")}>
+        <Text style={styles.modeEmoji}>🎯</Text>
+        <Text style={styles.modeText}>Fácil</Text>
+        <Text style={styles.modeSubtext}>Sem cronômetro</Text>
+      </BouncyButton>
+
+      <BouncyButton style={[styles.modeButton, styles.hardButton]} onPress={() => onSelect("hard")}>
+        <Text style={styles.modeEmoji}>⏱️</Text>
+        <Text style={styles.modeText}>Difícil</Text>
+        <Text style={styles.modeSubtext}>Com cronômetro</Text>
+      </BouncyButton>
+    </View>
+  );
+}
+
 export default function Memory() {
+  const [mode, setMode] = useState<Mode | null>(null);
   const [game, setGame] = useState<GameState>(() => startPhase(0));
   const [flippedKeys, setFlippedKeys] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("Encontre os pares!");
+  const [finished, setFinished] = useState(false);
+  const [gameOver, setGameOver] = useState(false);
 
   const { playPrompt, playSuccess, playError } = useQuizSound();
-  const router = useRouter();
 
   const phase = PHASES[game.phaseIndex];
   const matchedCount = game.cards.filter((c) => c.matched).length / 2;
   const cardSize = useCardSize(phase.pairs * 2);
+  const timeUp = mode === "hard" && game.timeLeft === 0;
 
   useEffect(() => {
+    if (mode !== "hard") return;
     const id = setInterval(() => {
       setGame((g) => ({ ...g, timeLeft: Math.max(0, g.timeLeft - 1) }));
     }, 1000);
     return () => clearInterval(id);
-  }, [game.phaseIndex]);
+  }, [game.phaseIndex, mode]);
 
   useEffect(() => {
-    if (game.timeLeft === 0) {
-      const id = setTimeout(() => setGame(startPhase(0)), 1400);
-      return () => clearTimeout(id);
-    }
-  }, [game.timeLeft]);
+    if (!timeUp) return;
+    const id = setTimeout(() => setGameOver(true), 1200);
+    return () => clearTimeout(id);
+  }, [timeUp]);
 
-  const displayMessage = game.timeLeft === 0 ? "⏰ Tempo esgotado!" : message;
+  const displayMessage = timeUp ? "⏰ Tempo esgotado!" : message;
+
+  function restart() {
+    setGame(startPhase(0));
+    setFlippedKeys([]);
+    setBusy(false);
+    setMessage("Encontre os pares!");
+    setFinished(false);
+    setGameOver(false);
+  }
 
   function handleFlip(card: Card) {
-    if (busy || card.flipped || card.matched || game.timeLeft === 0) return;
+    if (busy || card.flipped || card.matched || timeUp) return;
 
     const nextFlipped = [...flippedKeys, card.key];
     setGame((g) => ({
@@ -127,7 +164,7 @@ export default function Memory() {
             setTimeout(() => setGame(startPhase(game.phaseIndex + 1)), 1200);
           } else {
             setMessage("🏆 Você completou tudo!");
-            setTimeout(() => router.push("/"), 1400);
+            setTimeout(() => setFinished(true), 1200);
           }
         }
       }, 500);
@@ -149,6 +186,10 @@ export default function Memory() {
     }
   }
 
+  if (mode === null) {
+    return <ModeSelect onSelect={setMode} />;
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.sparkle1}>✨</Text>
@@ -160,9 +201,11 @@ export default function Memory() {
       <Text style={styles.subtitle}>
         Fase {game.phaseIndex + 1}/{PHASES.length} · {matchedCount}/{phase.pairs} pares
       </Text>
-      <Text style={[styles.timer, game.timeLeft <= 10 && styles.timerLow]}>
-        ⏱️ {game.timeLeft}s
-      </Text>
+      {mode === "hard" && (
+        <Text style={[styles.timer, game.timeLeft <= 10 && styles.timerLow]}>
+          ⏱️ {game.timeLeft}s
+        </Text>
+      )}
       <Text style={styles.message}>{displayMessage}</Text>
 
       <View style={styles.grid}>
@@ -187,6 +230,9 @@ export default function Memory() {
           </BouncyButton>
         ))}
       </View>
+
+      {finished && <EndScreen variant="win" onPlayAgain={restart} />}
+      {gameOver && <EndScreen variant="lose" onPlayAgain={restart} />}
     </View>
   );
 }
@@ -220,7 +266,6 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     justifyContent: "center",
     width: "100%",
-    // backgroundColor: 'red'
   },
   card: {
     margin: 8,
@@ -244,4 +289,28 @@ const styles = StyleSheet.create({
   sparkle1: { position: "absolute", top: 60, left: 24, fontSize: 20 },
   sparkle2: { position: "absolute", top: 90, right: 30, fontSize: 16 },
   sparkle3: { position: "absolute", top: 140, left: 40, fontSize: 14 },
+
+  modeButton: {
+    width: 220,
+    paddingVertical: 20,
+    borderRadius: 24,
+    alignItems: "center",
+    marginTop: 20,
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 4,
+  },
+  easyButton: { backgroundColor: "#00B894" },
+  hardButton: { backgroundColor: "#D63031" },
+  modeEmoji: { fontSize: 36 },
+  modeText: {
+    fontSize: 20,
+    fontFamily: Fonts.rounded,
+    fontWeight: "700",
+    color: "#fff",
+    marginTop: 4,
+  },
+  modeSubtext: { fontSize: 14, color: "#fff", marginTop: 2 },
 });

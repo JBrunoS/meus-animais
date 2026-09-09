@@ -4,6 +4,17 @@ import { ScreenBackgrounds } from "@/constants/theme";
 import { useGameStore } from "@/store/gameStore";
 import { StyleSheet, Text, View } from "react-native";
 
+// these six animals' food photos ended up looking near-identical (hay/grass/leaves),
+// so none of them should show up as a wrong-answer distractor for one another
+const SIMILAR_FOOD_IDS = new Set([
+  "cow",
+  "horse",
+  "donkey",
+  "elephant",
+  "giraffe",
+  "kangaroo",
+]);
+
 export default function Food() {
   const resetProgress = useGameStore((s) => s.resetProgress);
 
@@ -11,8 +22,12 @@ export default function Food() {
     <EmojiChoiceGame
       title="O que esse animal come?"
       getAnswer={(a) => a.food}
+      getLabel={(a) => a.foodLabel}
       background={ScreenBackgrounds.food}
       onFinish={resetProgress}
+      excludeGroup={(current, other) =>
+        SIMILAR_FOOD_IDS.has(current.id) && SIMILAR_FOOD_IDS.has(other.id)
+      }
       decoration={
         <>
           <View style={styles.grass} />

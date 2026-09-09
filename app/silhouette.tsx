@@ -11,7 +11,8 @@ export default function Silhouette() {
     <AnimalGuessGame
       title="🌑 Quem está escondido?"
       background={ScreenBackgrounds.silhouette}
-      textColor="#FFF3D6"
+      textColor="#DCE8FF"
+      backButtonColor="#FF7675"
       onFinish={resetProgress}
       decoration={
         <>

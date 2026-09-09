@@ -11,6 +11,7 @@ export default function Habitat() {
     <EmojiChoiceGame
       title="Onde esse animal mora?"
       getAnswer={(a) => a.habitat}
+      getLabel={(a) => a.habitatLabel}
       background={ScreenBackgrounds.habitat}
       onFinish={resetProgress}
       decoration={

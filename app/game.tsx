@@ -1,5 +1,6 @@
 import { BackButton } from "@/components/back-button";
 import { BouncyButton } from "@/components/bouncy-button";
+import { EndScreen } from "@/components/end-screen";
 import { FloatingEmoji } from "@/components/floating-emoji";
 import { ProgressBar } from "@/components/progress-bar";
 import { Fonts, ScreenBackgrounds } from "@/constants/theme";
@@ -7,7 +8,6 @@ import { animals, type Animal } from "@/data/animals";
 import { useQuizSound } from "@/hooks/use-quiz-sound";
 import { shuffle } from "@/lib/shuffle";
 import { useGameStore } from "@/store/gameStore";
-import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Image, StyleSheet, Text, View } from "react-native";
 
@@ -16,6 +16,17 @@ type Phase = { correct: SoundAnimal; options: SoundAnimal[] };
 
 const soundAnimals = animals.filter((a): a is SoundAnimal => a.sound !== undefined);
 
+function generatePhase(correctAnimal: SoundAnimal): Phase {
+  const wrongOptions = shuffle(
+    soundAnimals.filter((a) => a.id !== correctAnimal.id),
+  ).slice(0, 2);
+
+  return {
+    correct: correctAnimal,
+    options: shuffle([...wrongOptions, correctAnimal]),
+  };
+}
+
 export default function Game() {
   const TOTAL_PHASES = 10;
 
@@ -23,8 +34,9 @@ export default function Game() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
+  const [answering, setAnswering] = useState(false);
+  const [finished, setFinished] = useState(false);
 
-  const router = useRouter();
   const { playPrompt, playSuccess, playError } = useQuizSound();
 
   const phaseNumber = useGameStore((s) => s.phaseNumber);
@@ -32,22 +44,24 @@ export default function Game() {
   const addUnlocked = useGameStore((s) => s.addUnlocked);
   const resetProgress = useGameStore((s) => s.resetProgress);
 
-  const [phaseSequence] = useState(() => shuffle(soundAnimals));
-
-  function generatePhase(correctAnimal: SoundAnimal): Phase {
-    const wrongOptions = shuffle(
-      soundAnimals.filter((a) => a.id !== correctAnimal.id),
-    ).slice(0, 2);
-
-    return {
-      correct: correctAnimal,
-      options: shuffle([...wrongOptions, correctAnimal]),
-    };
-  }
-
+  const [phaseSequence, setPhaseSequence] = useState(() => shuffle(soundAnimals));
   const [phase, setPhase] = useState<Phase>(() => generatePhase(phaseSequence[0]));
 
+  function restart() {
+    resetProgress();
+    const nextSequence = shuffle(soundAnimals);
+    setPhaseSequence(nextSequence);
+    setPhase(generatePhase(nextSequence[0]));
+    setMessage("Quem faz esse som?");
+    setSelected(null);
+    setIsCorrect(null);
+    setAnswering(false);
+    setFinished(false);
+  }
+
   async function handleAnswer(animalId: string) {
+    if (answering) return;
+    setAnswering(true);
     setSelected(animalId);
 
     const correct = animalId === phase.correct.id;
@@ -68,13 +82,9 @@ export default function Game() {
           nextPhase();
           setPhase(generatePhase(phaseSequence[phaseNumber + 1]));
           setMessage("Quem faz esse som?");
+          setAnswering(false);
         } else {
-          setMessage("🏆 Você completou!");
-
-          setTimeout(() => {
-            resetProgress();
-            router.push("/");
-          }, 1200);
+          setFinished(true);
         }
       }, 1500);
     } else {
@@ -84,6 +94,7 @@ export default function Game() {
       setTimeout(() => {
         setSelected(null);
         setIsCorrect(null);
+        setAnswering(false);
       }, 800);
     }
   }
@@ -115,6 +126,7 @@ export default function Game() {
 
       <BouncyButton
         style={styles.soundButton}
+        disabled={answering}
         onPress={() => playPrompt(phase.correct.sound)}
       >
         <Text style={styles.soundText}>🔊</Text>
@@ -133,6 +145,7 @@ export default function Game() {
             <BouncyButton
               key={a.id}
               style={[styles.option, { borderColor }]}
+              disabled={answering}
               onPress={() => handleAnswer(a.id)}
             >
               <Image source={a.adultImage} style={styles.optionImage} />
@@ -151,6 +164,8 @@ export default function Game() {
           <Text style={styles.successText}>🎉</Text>
         </View>
       )}
+
+      {finished && <EndScreen variant="win" onPlayAgain={restart} />}
     </View>
   );
 }

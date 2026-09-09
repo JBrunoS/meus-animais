@@ -4,12 +4,14 @@ import { Fonts, ScreenBackgrounds } from '@/constants/theme';
 import { animals } from '@/data/animals';
 import { useQuizSound } from '@/hooks/use-quiz-sound';
 import { useGameStore } from '@/store/gameStore';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 
 export default function Album() {
     const unlocked = useGameStore((s) => s.unlocked);
-    const { playPrompt } = useQuizSound();
+    const { playPrompt, isPromptPlaying } = useQuizSound();
+    const [playingId, setPlayingId] = useState<string | null>(null);
 
     return (
         <View style={styles.container}>
@@ -23,9 +25,15 @@ export default function Album() {
                 Desbloqueados: {unlocked.length} / {animals.length}
             </Text>
 
-            <View style={styles.grid}>
+            <ScrollView
+                style={styles.scrollArea}
+                contentContainerStyle={styles.grid}
+                showsVerticalScrollIndicator={false}
+            >
                 {animals.map((a) => {
                     const isUnlocked = unlocked.includes(a.id);
+
+                    const isPlaying = isPromptPlaying && playingId === a.id;
 
                     return (
                         <BouncyButton
@@ -33,9 +41,14 @@ export default function Album() {
                             style={[
                                 styles.card,
                                 { opacity: isUnlocked ? 1 : 0.3 },
+                                isPlaying && styles.cardPlaying,
                             ]}
+                            disabled={isPromptPlaying}
                             onPress={() => {
-                                if (isUnlocked && a.sound) playPrompt(a.sound);
+                                if (isUnlocked && a.sound && !isPromptPlaying) {
+                                    setPlayingId(a.id);
+                                    playPrompt(a.sound);
+                                }
                             }}
                         >
                             {isUnlocked ? (
@@ -46,7 +59,7 @@ export default function Album() {
                         </BouncyButton>
                     );
                 })}
-            </View>
+            </ScrollView>
         </View>
     );
 }
@@ -74,11 +87,16 @@ const styles = StyleSheet.create({
         color: '#636E72',
     },
 
+    scrollArea: {
+        flex: 1,
+        width: '90%',
+    },
+
     grid: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        width: '90%',
         justifyContent: 'center',
+        paddingBottom: 24,
     },
 
     card: {
@@ -87,6 +105,8 @@ const styles = StyleSheet.create({
         margin: 8,
         backgroundColor: '#74B9FF',
         borderRadius: 18,
+        borderWidth: 4,
+        borderColor: 'transparent',
         justifyContent: 'center',
         alignItems: 'center',
         overflow: 'hidden',
@@ -95,6 +115,10 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         shadowOffset: { width: 0, height: 2 },
         elevation: 3,
+    },
+
+    cardPlaying: {
+        borderColor: '#6ffa38',
     },
 
     image: {
