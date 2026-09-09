@@ -1,14 +1,20 @@
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
+import { setIsAudioActiveAsync } from 'expo-audio';
 import { useRouter } from "expo-router";
 import { StyleSheet, Text, TouchableOpacity } from "react-native";
 
-export function BackButton() {
+export function BackButton({ color = '#003366' }: { color?: string }) {
   const router = useRouter();
+
+  function handlePress() {
+    setIsAudioActiveAsync(false);
+    router.replace("/");
+  }
+
   return (
-    <TouchableOpacity style={styles.button} onPress={() => router.push("/")}>
+    <TouchableOpacity style={[styles.button, { backgroundColor: color }]} onPress={handlePress}>
       <FontAwesome6 name='arrow-left' size={16} color="#FFFFFF" />
-      {/* <FontAwesome6 name="house" size={16} color="#FFFFFF" /> */}
-      <Text style={styles.text}>  Voltar para Início</Text>
+      <Text style={styles.text}>  Voltar</Text>
     </TouchableOpacity>
   );
 }
@@ -22,7 +28,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    backgroundColor: '#003366',
     borderRadius: 8,
   },
   text: {

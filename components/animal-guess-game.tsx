@@ -2,32 +2,41 @@ import { animals, type Animal } from "@/data/animals";
 import { Fonts } from "@/constants/theme";
 import { useQuizSound } from "@/hooks/use-quiz-sound";
 import { shuffle } from "@/lib/shuffle";
-import { useRouter } from "expo-router";
 import { useState, type ReactNode } from "react";
 import { Image, StyleSheet, Text, View } from "react-native";
 import { BackButton } from "./back-button";
 import { BouncyButton } from "./bouncy-button";
+import { EndScreen } from "./end-screen";
 import { ProgressBar } from "./progress-bar";
+
+const TOTAL_PHASES = 10;
 
 export function AnimalGuessGame({
   title,
   renderClue,
   background,
   onFinish,
+  decoration,
+  textColor = "#2D3436",
+  backButtonColor,
 }: {
   title: string;
   renderClue: (animal: Animal) => ReactNode;
   background: string;
   onFinish?: () => void;
+  decoration?: ReactNode;
+  textColor?: string;
+  backButtonColor?: string;
 }) {
   const [index, setIndex] = useState(0);
   const [message, setMessage] = useState("");
   const [selected, setSelected] = useState<string | null>(null);
+  const [answering, setAnswering] = useState(false);
+  const [finished, setFinished] = useState(false);
 
   const { playSuccess, playError } = useQuizSound();
-  const router = useRouter();
 
-  const [phases] = useState(() => shuffle(animals));
+  const [phases, setPhases] = useState<Animal[]>(() => shuffle(animals).slice(0, TOTAL_PHASES));
   const current = phases[index];
   const totalPhases = phases.length;
 
@@ -38,7 +47,20 @@ export function AnimalGuessGame({
 
   const [options, setOptions] = useState<Animal[]>(() => generateOptions(phases[0]));
 
+  function restart() {
+    const nextPhases = shuffle(animals).slice(0, TOTAL_PHASES);
+    setPhases(nextPhases);
+    setIndex(0);
+    setOptions(generateOptions(nextPhases[0]));
+    setMessage("");
+    setSelected(null);
+    setAnswering(false);
+    setFinished(false);
+  }
+
   async function handleAnswer(animalId: string) {
+    if (answering) return;
+    setAnswering(true);
     setSelected(animalId);
 
     if (animalId === current.id) {
@@ -53,25 +75,27 @@ export function AnimalGuessGame({
           setIndex(next);
           setOptions(generateOptions(phases[next]));
           setMessage("");
+          setAnswering(false);
         } else {
-          setMessage("🏆 Você terminou!");
-          setTimeout(() => {
-            onFinish?.();
-            router.push("/");
-          }, 1200);
+          onFinish?.();
+          setFinished(true);
         }
       }, 1200);
     } else {
       setMessage("🙂 Tente novamente!");
       await playError();
-      setTimeout(() => setSelected(null), 800);
+      setTimeout(() => {
+        setSelected(null);
+        setAnswering(false);
+      }, 800);
     }
   }
 
   return (
     <View style={[styles.container, { backgroundColor: background }]}>
-      <BackButton />
-      <Text style={styles.title}>{title}</Text>
+      {decoration}
+      <BackButton color={backButtonColor} />
+      <Text style={[styles.title, { color: textColor }]}>{title}</Text>
 
       {renderClue(current)}
 
@@ -87,6 +111,7 @@ export function AnimalGuessGame({
             <BouncyButton
               key={a.id}
               style={[styles.option, { borderColor }]}
+              disabled={answering}
               onPress={() => handleAnswer(a.id)}
             >
               <Image source={a.adultImage} style={styles.optionImage} />
@@ -98,7 +123,9 @@ export function AnimalGuessGame({
 
       <ProgressBar current={index} total={totalPhases} />
 
-      <Text style={styles.message}>{message}</Text>
+      <Text style={[styles.message, { color: textColor }]}>{message}</Text>
+
+      {finished && <EndScreen variant="win" onPlayAgain={restart} />}
     </View>
   );
 }
@@ -120,7 +147,7 @@ const styles = StyleSheet.create({
   options: {
     marginTop: 30,
     flexDirection: "row",
-    width: "80%",
+    width: "90%",
     justifyContent: "space-between",
   },
   option: {
@@ -136,8 +163,8 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   optionImage: {
-    width: 80,
-    height: 80,
+    width: 100,
+    height: 100,
     borderRadius: 16,
     resizeMode: "cover",
   },

@@ -8,6 +8,7 @@ export function FloatingEmoji({
   distance = 12,
   duration = 1800,
   size = 40,
+  flip = false,
 }: {
   emoji: string;
   style?: StyleProp<TextStyle>;
@@ -15,8 +16,10 @@ export function FloatingEmoji({
   distance?: number;
   duration?: number;
   size?: number;
+  flip?: boolean;
 }) {
-  const transform = useBounce(axis, distance, duration);
+  const bounce = useBounce(axis, distance, duration);
+  const transform = flip ? [...bounce, { scaleX: -1 }] : bounce;
 
   return (
     <Animated.Text style={[styles.emoji, { fontSize: size, transform }, style]}>
