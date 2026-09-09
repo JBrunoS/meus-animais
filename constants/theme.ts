@@ -15,11 +15,11 @@ export const FunColors = ['#FF7675', '#00B894', '#FDCB6E', '#6C5CE7', '#0984E3']
 
 // fundo pastel de cada tela, pra tirar a cara de "tudo branco"
 export const ScreenBackgrounds = {
-  game: '#BEE7FA',
-  food: '#CFF0FA',
-  pops: '#2C3968',
-  album: '#E6F4FE',
-  habitat: '#BFE3F0',
+  game: '#6EC6DE',
+  food: '#FFE0A3',
+  pops: '#4A3B5C',
+  album: '#FDF6E9',
+  habitat: '#9FDDD0',
   memory: '#FDECEF',
-  silhouette: '#232B4D',
+  silhouette: '#1F2A44',
 };
