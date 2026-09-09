@@ -1,27 +1,49 @@
 import { BouncyButton } from '@/components/bouncy-button';
-import { FloatingEmoji, FloatingImage } from '@/components/floating-emoji';
+import { FloatingEmoji } from '@/components/floating-emoji';
 import { Fonts, FunColors } from '@/constants/theme';
 import { animals } from '@/data/animals';
-import { shuffle } from '@/lib/shuffle';
-import { useRouter } from 'expo-router';
-import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { setIsAudioActiveAsync, useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback } from 'react';
+import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+
+const HERO_IMAGE = require('../assets/images/hero/hero-image.png');
+const HERO_ASPECT_RATIO = 677 / 369;
+const HOME_SONG = require('../assets/songs/home-song.mp3');
+
+function findAnimal(id: string) {
+  return animals.find((a) => a.id === id)!;
+}
 
 const MENU = [
-  { icon: '🔊', label: 'Sons dos Animais', route: '/game' },
-  { icon: '🍓', label: 'Hora da Comida', route: '/food' },
-  { icon: '🐣', label: 'Quem é o Filhote?', route: '/pops' },
-  { icon: '🏠', label: 'Onde ele Mora?', route: '/habitat' },
-  { icon: '🧠', label: 'Jogo da Memória', route: '/memory' },
-  { icon: '🔍', label: 'Adivinhe o Animal', route: '/silhouette' },
-  { icon: '📘', label: 'Meu Álbum', route: '/album' },
+  { image: findAnimal('dog').adultImage, badge: '🔊', silhouette: false, label: 'Sons', route: '/game' },
+  { image: findAnimal('cat').adultImage, badge: '🍓', silhouette: false, label: 'Comida', route: '/food' },
+  { image: findAnimal('elephant').babyImage, badge: null, silhouette: false, label: 'Filhotes', route: '/pops' },
+  { image: findAnimal('giraffe').adultImage, badge: '🏠', silhouette: false, label: 'Onde Mora', route: '/habitat' },
+  { image: findAnimal('owl').adultImage, badge: '🧠', silhouette: false, label: 'Memória', route: '/memory' },
+  { image: findAnimal('penguin').adultImage, badge: null, silhouette: true, label: 'Adivinhe', route: '/silhouette' },
+  { image: findAnimal('lion').adultImage, badge: '📘', silhouette: false, label: 'Álbum', route: '/album' },
 ] as const;
-
-const FEATURED_POOL = animals.filter((a) => a.faceImage);
 
 export default function Home() {
   const router = useRouter();
-  const [featured] = useState(() => shuffle(FEATURED_POOL).slice(0, 4));
+  const player = useAudioPlayer(HOME_SONG);
+  const musicStatus = useAudioPlayerStatus(player);
+
+  useFocusEffect(
+    useCallback(() => {
+      setIsAudioActiveAsync(true);
+      // expo-audio's AudioPlayer is a native handle meant to be mutated directly
+      // (its own docs set player.volume the same way).
+      // eslint-disable-next-line react-hooks/immutability
+      player.loop = true;
+      player.play();
+
+      return () => {
+        player.pause();
+      };
+    }, [player]),
+  );
 
   return (
     <View style={styles.container}>
@@ -33,33 +55,44 @@ export default function Home() {
       <FloatingEmoji emoji="🕊️" style={styles.passaro1} axis="x" distance={200} duration={8000} size={38} />
       <FloatingEmoji emoji="🕊️" style={styles.passaro2} flip axis="x" distance={250} duration={10000} size={38} />
 
-      <Text style={styles.title}>Meus Animais</Text>
+      <BouncyButton
+        style={styles.musicButton}
+        onPress={() => (musicStatus.playing ? player.pause() : player.play())}
+      >
+        <Text style={styles.musicIcon}>{musicStatus.playing ? '🔊' : '🔇'}</Text>
+      </BouncyButton>
 
-      <View style={styles.critters}>
-        {featured.map((a, i) => (
-          <FloatingImage
-            key={a.id}
-            source={a.faceImage!}
-            imageStyle={styles.critterImage}
-            axis="y"
-            distance={8}
-            duration={1400 + i * 350}
-          />
-        ))}
+      <View style={styles.heroWrap}>
+        <Image source={HERO_IMAGE} style={styles.heroImage} />
+        {/* <Text style={styles.title}>Meus Animais</Text> */}
       </View>
 
-      <View style={styles.grid}>
+      <ScrollView
+        style={styles.scrollArea}
+        contentContainerStyle={styles.grid}
+        showsVerticalScrollIndicator={false}
+      >
         {MENU.map((item, i) => (
           <BouncyButton
             key={item.route}
             style={[styles.button, { backgroundColor: FunColors[i % FunColors.length] }]}
             onPress={() => router.push(item.route)}
           >
-            <Text style={styles.buttonIcon}>{item.icon}</Text>
+            <View style={styles.photoWrap}>
+              <Image
+                source={item.image}
+                style={[styles.photo, item.silhouette && styles.photoSilhouette]}
+              />
+              {item.badge && (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{item.badge}</Text>
+                </View>
+              )}
+            </View>
             <Text style={styles.buttonText}>{item.label}</Text>
           </BouncyButton>
         ))}
-      </View>
+      </ScrollView>
       <FloatingEmoji emoji='🏔️' axis='x' distance={1} duration={3000} size={160} style={styles.mountain1} />
       <View style={styles.grass} />
     </View>
@@ -72,6 +105,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#BEE7FA',
+    paddingTop: 130,
+    paddingBottom: 30,
   },
   sun: { position: 'absolute', top: 100, right: 30 },
   cloud1: { position: 'absolute', top: 190, left: 20 },
@@ -81,65 +116,113 @@ const styles = StyleSheet.create({
   mountain1: { position: 'absolute', bottom: 20, right: 3, zIndex: 2 },
   passaro1: { position: 'absolute', bottom: 100, left: 180, },
   passaro2: { position: 'absolute', top: 280, left: 180 },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    fontFamily: Fonts.rounded,
-    marginBottom: 8,
-    color: '#2D3436',
+  musicButton: {
+    position: 'absolute',
+    top: -60,
+    right: 142,
+    width: 64,
+    height: 64,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.85)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 5,
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 4,
   },
-  critters: {
-    flexDirection: 'row',
-    gap: 4,
-    marginBottom: 90,
-    width: '90%'
+  musicIcon: { fontSize: 30 },
+
+  heroWrap: {
+    width: '100%',
+    aspectRatio: HERO_ASPECT_RATIO,
+    marginBottom: 12,
   },
-  critterImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    resizeMode: 'cover',
-    borderWidth: 3,
-    borderColor: '#fff',
+  heroImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'contain',
+  },
+  scrollArea: {
+    flex: 1,
+    width: '100%',
+    zIndex: 4,
+    paddingTop: 40,
+    
   },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
     gap: 14,
-    width: '90%',
-    zIndex: 4,
+    paddingBottom: 16,
+
+    // backgroundColor: 'red'
   },
   button: {
-    padding: 16,
+    padding: 24,
     borderRadius: 24,
-    width: 190,
-    height: 120,
+    width: '100%',
+    height: 140,
     justifyContent: 'center',
+    alignItems: 'center',
     shadowColor: '#000',
     shadowOpacity: 0.15,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 3 },
     elevation: 4,
-    display: 'flex',
-    flexDirection: 'column',
+  },
+  photoWrap: {
+    width: 82,
+    height: 82,
+    borderRadius: 41,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
+    borderWidth: 3,
+    borderColor: 'rgba(255,255,255,0.7)',
+  },
+  photo: {
+    width: 74,
+    height: 74,
+    borderRadius: 37,
+    resizeMode: 'cover',
+  },
+  photoSilhouette: {
+    width: 108,
+    height: 108,
+    resizeMode: 'contain',
+    tintColor: '#2D3436',
+    opacity: 0.4,
+  },
+  badge: {
+    position: 'absolute',
+    bottom: -4,
+    right: -4,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#2D3436',
+  },
+  badgeText: {
+    fontSize: 15,
   },
   buttonText: {
     color: '#fff',
     fontSize: 18,
-    // textShadowColor: '#003366',
-    textShadowColor: 'black', // Cor da borda
-    textShadowOffset: { width: 1, height: 0 }, // Posição
-    textShadowRadius: 3, // Mantém a borda nítida
+    textShadowColor: 'black',
+    textShadowOffset: { width: 1, height: 0 },
+    textShadowRadius: 3,
     fontWeight: '600',
     textAlign: 'center',
-  },
-  buttonIcon: {
-    color: '#fff',
-    fontSize: 35,
-    // fontFamily: Fonts.rounded,
-    fontWeight: '600',
-    textAlign: 'center',
+    fontFamily: Fonts.rounded,
   },
   grass: {
     position: 'absolute',
